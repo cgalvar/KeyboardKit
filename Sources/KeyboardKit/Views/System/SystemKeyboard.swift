@@ -104,7 +104,7 @@ public struct SystemKeyboard<ButtonView: View>: View {
     private let layout: KeyboardLayout
     private let layoutConfig: KeyboardLayoutConfiguration
     
-    public typealias ButtonViewBuilder = (KeyboardLayoutItem, KeyboardWidth, KeyboardItemWidth) -> ButtonView
+    public typealias ButtonViewBuilder = (KeyboardLayoutItem, KeyboardWidth, KeyboardItemWidth, _ y: Int, _ x: Int) -> ButtonView
     public typealias KeyboardWidth = CGFloat
     public typealias KeyboardItemWidth = CGFloat
     
@@ -162,7 +162,7 @@ public extension SystemKeyboard where ButtonView == SystemKeyboardButtonRowItem<
             actionCalloutContext: actionCalloutContext,
             inputCalloutContext: inputCalloutContext,
             width: width,
-            buttonView: { item, keyboardWidth, inputWidth in
+            buttonView: { item, keyboardWidth, inputWidth, y, x in
                 Self.standardButtonView(
                     item: item,
                     appearance: appearance,
@@ -218,7 +218,7 @@ public extension SystemKeyboard where ButtonView == SystemKeyboardButtonRowItem<
             actionCalloutContext: actionCalloutContext,
             inputCalloutContext: inputCalloutContext,
             width: width,
-            buttonView: { item, keyboardWidth, inputWidth in
+            buttonView: { item, keyboardWidth, inputWidth, y, x in
                 SystemKeyboardButtonRowItem(
                     content: AnyView(buttonContent(item)),
                     item: item,
@@ -333,15 +333,15 @@ private extension SystemKeyboard {
 private extension SystemKeyboard {
 
     func itemRows(for layout: KeyboardLayout) -> some View {
-        ForEach(Array(layout.itemRows.enumerated()), id: \.offset) {
-            items(for: layout, itemRow: $0.element)
+        ForEach(Array(layout.itemRows.enumerated()), id: \.offset) { index, element in
+            items(for: layout, itemRow: element, y: index)
         }
     }
 
-    func items(for layout: KeyboardLayout, itemRow: KeyboardLayoutItemRow) -> some View {
+    func items(for layout: KeyboardLayout, itemRow: KeyboardLayoutItemRow, y: Int) -> some View {
         HStack(spacing: 0) {
-            ForEach(Array(itemRow.enumerated()), id: \.offset) {
-                buttonView($0.element, keyboardWidth, inputWidth)
+            ForEach(Array(itemRow.enumerated()), id: \.offset) { index, element in
+                buttonView(element, keyboardWidth, inputWidth, y, index)
             }
         }
     }
@@ -359,7 +359,10 @@ struct SystemKeyboard_Previews: PreviewProvider {
     static func previewButton(
         item: KeyboardLayoutItem,
         keyboardWidth: CGFloat,
-        inputWidth: CGFloat) -> some View {
+        inputWidth: CGFloat,
+        y: Int,
+        x: Int
+    ) -> some View {
         switch item.action {
         case .space:
             Text("This is a space bar replacement")
